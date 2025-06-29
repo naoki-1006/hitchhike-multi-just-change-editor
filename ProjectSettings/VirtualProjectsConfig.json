@@ -1,4 +1,7 @@
 {
-  "PlayerTags": [],
-  "version": "1.4.3"
+  "PlayerTags": [
+    "p1",
+    "p2"
+  ],
+  "version": "1.6.0"
 }
