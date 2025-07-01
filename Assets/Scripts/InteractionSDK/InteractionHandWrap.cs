@@ -42,7 +42,6 @@ namespace Hitchhike
       ods._cameraRigRef = gameObject.GetComponentInParent<OVRCameraRigRef>();
       ods.InjectHandSkeletonProvider(gameObject.GetComponentInParent<HandSkeletonOVR>());
       ods.InjectTrackingToWorldTransformer(gameObject.GetComponentInParent<TrackingToWorldTransformerOVR>());
-
       grab = gameObject.GetComponentInChildren<HandGrabInteractor>();
       grabUse = gameObject.GetComponentInChildren<HandGrabUseInteractor>();
     }
