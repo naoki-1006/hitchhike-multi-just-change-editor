@@ -20,13 +20,13 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Demo/VRWindowingSystem.unity
     guid: a8f075f43d7683b428b7c5b353cb4510
-  - enabled: 1
+  - enabled: 0
     path: Assets/Mutiplay-test/multi-hitchhike/multi-easygame.unity
     guid: 416b6c65599974b4bb66d2a698a9a9b5
-  - enabled: 1
+  - enabled: 0
     path: Assets/NGO_Minimal_Setup/NGO_Setup.unity
     guid: 942bdc61d45de9b4193b4423b630f664
-  - enabled: 1
+  - enabled: 0
     path: Assets/Mutiplay-test/multi-hitchhike/Multi-test.unity
     guid: 62f150b6edbfa934ea64c263925f19fb
   - enabled: 1

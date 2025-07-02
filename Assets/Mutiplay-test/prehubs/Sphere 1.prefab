@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 739322118335211829}
   - component: {fileID: 2215066268483595980}
   - component: {fileID: 7869240195708554172}
-  - component: {fileID: 6129418919397378373}
   - component: {fileID: 3222843459838598514}
+  - component: {fileID: 6129418919397378373}
   - component: {fileID: 6881185384018320111}
   - component: {fileID: 8279347146420109374}
   m_Layer: 0
@@ -140,19 +140,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &6129418919397378373
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2452057030288263048}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e743a8833267d304ba75cfdeba352c0c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
 --- !u!114 &3222843459838598514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -165,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2230665324
+  GlobalObjectIdHash: 606446851
   InScenePlacedSourceGlobalObjectIdHash: 2308698740
   DeferredDespawnTick: 0
   Ownership: 1
@@ -178,6 +165,20 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &6129418919397378373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2452057030288263048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e743a8833267d304ba75cfdeba352c0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  moveSpeed: 5
 --- !u!114 &6881185384018320111
 MonoBehaviour:
   m_ObjectHideFlags: 0
