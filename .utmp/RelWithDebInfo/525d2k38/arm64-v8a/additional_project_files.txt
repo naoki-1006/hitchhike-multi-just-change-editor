@@ -1,0 +1,1 @@
+C:\Users\cyber\Documents\naoki\hitchhike-just-6\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\FramePacing\UnitySwappyWrapper.h

@@ -96,18 +96,18 @@ internal static class OVRMixedReality
 			currentComposition = null;
 		}
 
-		if (configuration.compositionMethod == OVRManager.CompositionMethod.External)
-		{
-			if (currentComposition == null)
-			{
-				currentComposition = new OVRExternalComposition(parentObject, mainCamera, configuration);
-			}
-		}
-		else
-		{
-			Debug.LogError("Unknown/Unsupported CompositionMethod : " + configuration.compositionMethod);
-			return;
-		}
+		// if (configuration.compositionMethod == OVRManager.CompositionMethod.External)
+		// {
+		// 	if (currentComposition == null)
+		// 	{
+		// 		currentComposition = new OVRExternalComposition(parentObject, mainCamera, configuration);
+		// 	}
+		// }
+		// else
+		// {
+		// 	Debug.LogError("Unknown/Unsupported CompositionMethod : " + configuration.compositionMethod);
+		// 	return;
+		// }
 		currentComposition.Update(parentObject, mainCamera, configuration, trackingOrigin);
 	}
 
