@@ -29,7 +29,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Mutiplay-test/multi-hitchhike/Multi-test.unity
     guid: 62f150b6edbfa934ea64c263925f19fb
-  - enabled: 1
+  - enabled: 0
     path: Assets/Mutiplay-test/multi-hitchhike/New Scene.unity
     guid: d2f2242319d6bed469dabe01fce59c5e
   - enabled: 1
