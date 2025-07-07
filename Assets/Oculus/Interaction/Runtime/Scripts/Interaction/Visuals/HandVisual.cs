@@ -1,26 +1,6 @@
-/*
- * Copyright (c) Meta Platforms, Inc. and affiliates.
- * All rights reserved.
- *
- * Licensed under the Oculus SDK License Agreement (the "License");
- * you may not use the Oculus SDK except in compliance with the License,
- * which is provided at the time of installation or download, or which
- * otherwise accompanies this software in either electronic or hard copy form.
- *
- * You may obtain a copy of the License at
- *
- * https://developer.oculus.com/licenses/oculussdk/
- *
- * Unless required by applicable law or agreed to in writing, the Oculus SDK
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 using Oculus.Interaction.Input;
 using System;
-using System.Collections; // IEnumeratorを使うため
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -34,22 +14,21 @@ namespace Oculus.Interaction
         public IHand Hand { get; private set; }
 
         [Header("外部OVRSkeletonによるオーバーライド")]
-        [SerializeField, Tooltip("ここにOVRSkeletonを設定すると、通常のIHandの代わりにこのスケルトンをポーズのソースとして使用します。")]
+        [SerializeField, Tooltip("ここにOVRSkeletonを設定すると、通常のIHandの代わりにこのスケルトンをポーズのソースとして使用します。空の場合は自動で検索します。")]
         private OVRSkeleton _overrideSkeleton;
 
-        private Quaternion[] _jointRotationsArray; // ポーズ情報の中間配列
+        private Quaternion[] _jointRotationsArray;
 
         [SerializeField]
         private SkinnedMeshRenderer _skinnedMeshRenderer;
 
         [SerializeField]
         private bool _updateRootPose = true;
-
         [SerializeField]
         private bool _updateRootScale = true;
-
         [SerializeField, Optional]
         private Transform _root = null;
+        public Transform Root => _root;
 
         [SerializeField, Optional]
         private MaterialPropertyBlockEditor _handMaterialPropertyBlockEditor;
@@ -60,14 +39,15 @@ namespace Oculus.Interaction
         public event Action WhenHandVisualUpdated = delegate { };
 
         public bool IsVisible => _skinnedMeshRenderer != null && _skinnedMeshRenderer.enabled;
-
         private int _wristScalePropertyId;
-
         public IList<Transform> Joints => _jointTransforms;
-
         public bool ForceOffVisibility { get; set; }
+        public bool EnableAutomaticSkeletonSearch { get; set; } = true;
 
         private bool _started = false;
+
+        // 手の向きを補正するための回転オフセット
+        private readonly Quaternion _rotationOffset = Quaternion.Euler(0, 180f, 0);
 
         protected virtual void Awake()
         {
@@ -88,17 +68,42 @@ namespace Oculus.Interaction
                 _wristScalePropertyId = Shader.PropertyToID("_WristScale");
             }
 
-            if (_overrideSkeleton != null)
+            if (_hand != null || _overrideSkeleton != null)
             {
                 StartCoroutine(InitializeOverride());
             }
 
             this.EndStart(ref _started);
         }
-        
-        // ### 修正点 ### IEnumerator を System.Collections.IEnumerator に変更
+
         private System.Collections.IEnumerator InitializeOverride()
         {
+            if (_overrideSkeleton == null && EnableAutomaticSkeletonSearch)
+            {
+                var rig = GameObject.Find("OVRCameraRig");
+                if (rig == null)
+                {
+                    Debug.LogWarning("OVRCameraRigが見つかりませんでした。通常のIHandで動作します。");
+                    yield break;
+                }
+
+                string anchorPath = gameObject.name.Contains("Left") ? "TrackingSpace/LeftHandAnchor" : "TrackingSpace/RightHandAnchor";
+                Transform anchor = rig.transform.Find(anchorPath);
+
+                if (anchor != null)
+                {
+                    _overrideSkeleton = anchor.GetComponentInChildren<OVRSkeleton>();
+                }
+                
+                if (_overrideSkeleton == null)
+                {
+                    Debug.LogWarning($"パス '{anchorPath}' でOVRSkeletonが見つかりませんでした。通常のIHandで動作します。");
+                    yield break;
+                }
+            }
+
+            if (_overrideSkeleton == null) yield break;
+
             while (!_overrideSkeleton.IsInitialized)
             {
                 yield return null;
@@ -106,8 +111,7 @@ namespace Oculus.Interaction
 
             if (_overrideSkeleton.BoneTransforms.Count != _jointTransforms.Count)
             {
-                Debug.LogError($"Override Skeletonのボーン数 ({_overrideSkeleton.BoneTransforms.Count}) と " +
-                               $"HandVisualの関節数 ({_jointTransforms.Count}) が一致しません。オーバーライドを無効にします。", this);
+                Debug.LogError($"Override Skeletonのボーン数 ({_overrideSkeleton.BoneTransforms.Count}) と HandVisualの関節数 ({_jointTransforms.Count}) が一致しません。オーバーライドを無効にします。", this);
                 _overrideSkeleton = null;
                 yield break;
             }
@@ -118,32 +122,17 @@ namespace Oculus.Interaction
 
         protected virtual void OnEnable()
         {
-            if (_started)
-            {
-                if (_overrideSkeleton == null)
-                {
-                    Hand.WhenHandUpdated += UpdateSkeleton;
-                }
-            }
+            if (_started && _overrideSkeleton == null) { Hand.WhenHandUpdated += UpdateSkeleton; }
         }
 
         protected virtual void OnDisable()
         {
-            if (_started && _hand != null)
-            {
-                if (_overrideSkeleton == null)
-                {
-                    Hand.WhenHandUpdated -= UpdateSkeleton;
-                }
-            }
+            if (_started && _hand != null && _overrideSkeleton == null) { Hand.WhenHandUpdated -= UpdateSkeleton; }
         }
 
         protected virtual void LateUpdate()
         {
-            if (_overrideSkeleton != null && _overrideSkeleton.IsInitialized)
-            {
-                UpdateSkeleton();
-            }
+            if (_overrideSkeleton != null && _overrideSkeleton.IsInitialized) { UpdateSkeleton(); }
         }
 
         public void UpdateSkeleton()
@@ -168,6 +157,17 @@ namespace Oculus.Interaction
             if (_overrideSkeleton != null)
             {
                 var sourceBones = _overrideSkeleton.BoneTransforms;
+                if (sourceBones == null || sourceBones.Count == 0) return;
+
+                Transform sourceWrist = sourceBones[0];
+                if (_root != null && sourceWrist != null)
+                {
+                    _root.position = sourceWrist.position;
+                    // ### ここを修正 ###
+                    // Y軸周りに180度回転させる補正を追加
+                    _root.rotation = sourceWrist.rotation * _rotationOffset;
+                }
+
                 for (int i = 0; i < sourceBones.Count; i++)
                 {
                     _jointRotationsArray[i] = sourceBones[i].localRotation;
@@ -191,7 +191,6 @@ namespace Oculus.Interaction
                         _root.rotation = handRootPose.rotation;
                     }
                 }
-
                 if (_updateRootScale)
                 {
                     if (_root != null)
@@ -200,7 +199,6 @@ namespace Oculus.Interaction
                         _root.localScale = Hand.Scale / parentScale * Vector3.one;
                     }
                 }
-
                 if (!Hand.GetJointPosesLocal(out ReadOnlyHandJointPoses localJoints))
                 {
                     return;
@@ -236,33 +234,27 @@ namespace Oculus.Interaction
             InjectHand(hand);
             InjectSkinnedMeshRenderer(skinnedMeshRenderer);
         }
-
         public void InjectHand(IHand hand)
         {
             _hand = hand as MonoBehaviour;
             Hand = hand;
         }
-
         public void InjectSkinnedMeshRenderer(SkinnedMeshRenderer skinnedMeshRenderer)
         {
             _skinnedMeshRenderer = skinnedMeshRenderer;
         }
-
         public void InjectOptionalUpdateRootPose(bool updateRootPose)
         {
             _updateRootPose = updateRootPose;
         }
-
         public void InjectOptionalUpdateRootScale(bool updateRootScale)
         {
             _updateRootScale = updateRootScale;
         }
-
         public void InjectOptionalRoot(Transform root)
         {
             _root = root;
         }
-
         public void InjectOptionalMaterialPropertyBlockEditor(MaterialPropertyBlockEditor editor)
         {
             _handMaterialPropertyBlockEditor = editor;

@@ -35,6 +35,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Mutiplay-test/multi-hitchhike/tyy-multi-hand.unity
     guid: fd916e08121d73542ba179eb39b37349
+  - enabled: 1
+    path: Assets/Mutiplay-test/multi-hitchhike/try-2pc-hand.unity
+    guid: 0be02b5baaa036f4fa7b97da969a5fa1
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: c3c04131ae035af4c9ee32d13c9ed39f, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 73454c6205c06d34a95e055ca66e200a, type: 2}

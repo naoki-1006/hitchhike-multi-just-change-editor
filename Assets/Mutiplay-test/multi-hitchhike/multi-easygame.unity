@@ -2112,7 +2112,7 @@ MonoBehaviour:
   ConnectionData:
     Address: 127.0.0.1
     Port: 7777
-    ServerListenAddress: 127.0.0.1
+    ServerListenAddress: 0.0.0.0
   DebugSimulator:
     PacketDelayMS: 0
     PacketJitterMS: 0
@@ -2401,7 +2401,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1245587948299599303, guid: 4bbfab0f20d52ed4ea4b20c45fbe50d1, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.0732905
+      value: 0.073290505
       objectReference: {fileID: 0}
     - target: {fileID: 1245587948299599303, guid: 4bbfab0f20d52ed4ea4b20c45fbe50d1, type: 3}
       propertyPath: m_LocalScale.y
@@ -2409,7 +2409,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1245587948299599303, guid: 4bbfab0f20d52ed4ea4b20c45fbe50d1, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.0732905
+      value: 0.073290505
       objectReference: {fileID: 0}
     - target: {fileID: 2636815362676390818, guid: 4bbfab0f20d52ed4ea4b20c45fbe50d1, type: 3}
       propertyPath: m_IsActive
@@ -2437,7 +2437,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7244911372950547174, guid: 4bbfab0f20d52ed4ea4b20c45fbe50d1, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.03664525
+      value: 0.036645252
       objectReference: {fileID: 0}
     - target: {fileID: 7244911372950547174, guid: 4bbfab0f20d52ed4ea4b20c45fbe50d1, type: 3}
       propertyPath: m_LocalScale.y
@@ -2445,7 +2445,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7244911372950547174, guid: 4bbfab0f20d52ed4ea4b20c45fbe50d1, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.03664525
+      value: 0.036645252
       objectReference: {fileID: 0}
     - target: {fileID: 8004901986158029192, guid: 4bbfab0f20d52ed4ea4b20c45fbe50d1, type: 3}
       propertyPath: isInvisible
