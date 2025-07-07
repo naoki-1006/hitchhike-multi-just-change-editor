@@ -20,6 +20,7 @@
 
 using Oculus.Interaction.Input;
 using System;
+using System.Collections; // IEnumeratorを使うため
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -31,6 +32,12 @@ namespace Oculus.Interaction
         [SerializeField, Interface(typeof(IHand))]
         private MonoBehaviour _hand;
         public IHand Hand { get; private set; }
+
+        [Header("外部OVRSkeletonによるオーバーライド")]
+        [SerializeField, Tooltip("ここにOVRSkeletonを設定すると、通常のIHandの代わりにこのスケルトンをポーズのソースとして使用します。")]
+        private OVRSkeleton _overrideSkeleton;
+
+        private Quaternion[] _jointRotationsArray; // ポーズ情報の中間配列
 
         [SerializeField]
         private SkinnedMeshRenderer _skinnedMeshRenderer;
@@ -81,14 +88,42 @@ namespace Oculus.Interaction
                 _wristScalePropertyId = Shader.PropertyToID("_WristScale");
             }
 
+            if (_overrideSkeleton != null)
+            {
+                StartCoroutine(InitializeOverride());
+            }
+
             this.EndStart(ref _started);
+        }
+        
+        // ### 修正点 ### IEnumerator を System.Collections.IEnumerator に変更
+        private System.Collections.IEnumerator InitializeOverride()
+        {
+            while (!_overrideSkeleton.IsInitialized)
+            {
+                yield return null;
+            }
+
+            if (_overrideSkeleton.BoneTransforms.Count != _jointTransforms.Count)
+            {
+                Debug.LogError($"Override Skeletonのボーン数 ({_overrideSkeleton.BoneTransforms.Count}) と " +
+                               $"HandVisualの関節数 ({_jointTransforms.Count}) が一致しません。オーバーライドを無効にします。", this);
+                _overrideSkeleton = null;
+                yield break;
+            }
+
+            _jointRotationsArray = new Quaternion[_overrideSkeleton.BoneTransforms.Count];
+            Debug.Log($"{this.name}: Override Skeleton '{_overrideSkeleton.name}' の準備が完了しました。");
         }
 
         protected virtual void OnEnable()
         {
             if (_started)
             {
-                Hand.WhenHandUpdated += UpdateSkeleton;
+                if (_overrideSkeleton == null)
+                {
+                    Hand.WhenHandUpdated += UpdateSkeleton;
+                }
             }
         }
 
@@ -96,18 +131,27 @@ namespace Oculus.Interaction
         {
             if (_started && _hand != null)
             {
-                Hand.WhenHandUpdated -= UpdateSkeleton;
+                if (_overrideSkeleton == null)
+                {
+                    Hand.WhenHandUpdated -= UpdateSkeleton;
+                }
+            }
+        }
+
+        protected virtual void LateUpdate()
+        {
+            if (_overrideSkeleton != null && _overrideSkeleton.IsInitialized)
+            {
+                UpdateSkeleton();
             }
         }
 
         public void UpdateSkeleton()
         {
-            if (!Hand.IsTrackedDataValid)
+            bool isDataValid = _overrideSkeleton != null ? _overrideSkeleton.IsDataValid : Hand.IsTrackedDataValid;
+            if (!isDataValid)
             {
-                if (IsVisible || ForceOffVisibility)
-                {
-                    _skinnedMeshRenderer.enabled = false;
-                }
+                if (IsVisible || ForceOffVisibility) { _skinnedMeshRenderer.enabled = false; }
                 WhenHandVisualUpdated.Invoke();
                 return;
             }
@@ -116,40 +160,56 @@ namespace Oculus.Interaction
             {
                 _skinnedMeshRenderer.enabled = true;
             }
-            else if(IsVisible && ForceOffVisibility)
+            else if (IsVisible && ForceOffVisibility)
             {
                 _skinnedMeshRenderer.enabled = false;
             }
 
-            if (_updateRootPose)
+            if (_overrideSkeleton != null)
             {
-                if (_root != null && Hand.GetRootPose(out Pose handRootPose))
+                var sourceBones = _overrideSkeleton.BoneTransforms;
+                for (int i = 0; i < sourceBones.Count; i++)
                 {
-                    _root.position = handRootPose.position;
-                    _root.rotation = handRootPose.rotation;
+                    _jointRotationsArray[i] = sourceBones[i].localRotation;
                 }
-            }
 
-            if (_updateRootScale)
-            {
-                if (_root != null)
+                for (int i = 0; i < _jointTransforms.Count; i++)
                 {
-                    float parentScale = _root.parent != null ? _root.parent.lossyScale.x : 1f;
-                    _root.localScale = Hand.Scale / parentScale * Vector3.one;
+                    if (_jointTransforms[i] != null)
+                    {
+                        _jointTransforms[i].localRotation = _jointRotationsArray[i];
+                    }
                 }
             }
+            else
+            {
+                if (_updateRootPose)
+                {
+                    if (_root != null && Hand.GetRootPose(out Pose handRootPose))
+                    {
+                        _root.position = handRootPose.position;
+                        _root.rotation = handRootPose.rotation;
+                    }
+                }
 
-            if (!Hand.GetJointPosesLocal(out ReadOnlyHandJointPoses localJoints))
-            {
-                return;
-            }
-            for (var i = 0; i < Constants.NUM_HAND_JOINTS; ++i)
-            {
-                if (_jointTransforms[i] == null)
+                if (_updateRootScale)
                 {
-                    continue;
+                    if (_root != null)
+                    {
+                        float parentScale = _root.parent != null ? _root.parent.lossyScale.x : 1f;
+                        _root.localScale = Hand.Scale / parentScale * Vector3.one;
+                    }
                 }
-                _jointTransforms[i].SetPose(localJoints[i], Space.Self);
+
+                if (!Hand.GetJointPosesLocal(out ReadOnlyHandJointPoses localJoints))
+                {
+                    return;
+                }
+                for (var i = 0; i < Constants.NUM_HAND_JOINTS; ++i)
+                {
+                    if (_jointTransforms[i] == null) { continue; }
+                    _jointTransforms[i].SetPose(localJoints[i], Space.Self);
+                }
             }
 
             if (_handMaterialPropertyBlockEditor != null)
@@ -171,7 +231,6 @@ namespace Oculus.Interaction
         }
 
         #region Inject
-
         public void InjectAllHandSkeletonVisual(IHand hand, SkinnedMeshRenderer skinnedMeshRenderer)
         {
             InjectHand(hand);
@@ -208,7 +267,6 @@ namespace Oculus.Interaction
         {
             _handMaterialPropertyBlockEditor = editor;
         }
-
         #endregion
     }
 }
