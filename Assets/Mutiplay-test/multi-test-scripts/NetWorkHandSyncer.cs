@@ -6,10 +6,8 @@ namespace Oculus.Interaction
     [RequireComponent(typeof(HandVisual))]
     public class NetworkHandSyncer : NetworkBehaviour
     {
-        // ### 削除 ### 手動で設定していたWristTransformフィールドを削除
-        // public Transform WristTransform;
-
         private HandVisual _handVisual;
+        private Transform _localTrackingSpace;
         private OVRSkeleton _localSkeleton;
 
         private readonly Quaternion _rotationOffset = Quaternion.Euler(0, 180f, 0);
@@ -24,33 +22,58 @@ namespace Oculus.Interaction
 
         public override void OnNetworkSpawn()
         {
-            if (!IsOwner)
+            if (IsOwner)
             {
-                _handVisual.EnableAutomaticSkeletonSearch = false;
-                _networkHandPose.OnValueChanged += OnPoseChanged;
-                return;
+                GainedOwnership();
             }
+            else
+            {
+                LostOwnership();
+            }
+        }
 
+        public override void OnGainedOwnership()
+        {
+            base.OnGainedOwnership();
+            GainedOwnership();
+        }
+
+        public override void OnLostOwnership()
+        {
+            base.OnLostOwnership();
+            LostOwnership();
+        }
+
+        private void GainedOwnership()
+        {
+            if (!IsOwner) return; // 念のため
+            _handVisual.EnableAutomaticSkeletonSearch = true; // ローカルでの自動検索をON
+            _networkHandPose.OnValueChanged -= OnPoseChanged;
+            FindLocalSkeleton();
+        }
+
+        private void LostOwnership()
+        {
+            _handVisual.EnableAutomaticSkeletonSearch = false; // 他人の手は自動検索をOFF
+            _localSkeleton = null;
+            _localTrackingSpace = null;
+            _networkHandPose.OnValueChanged += OnPoseChanged;
+        }
+
+        private void FindLocalSkeleton()
+        {
             var rig = GameObject.Find("OVRCameraRig");
-            if (rig == null)
-            {
-                Debug.LogError("OVRCameraRigが見つかりませんでした。シーンに存在するか確認してください。", this);
-                return;
-            }
+            if (rig == null) { Debug.LogError("OVRCameraRigが見つかりませんでした。"); return; }
+            
+            _localTrackingSpace = rig.transform.Find("TrackingSpace");
+            if (_localTrackingSpace == null) { Debug.LogError("TrackingSpaceが見つかりませんでした。"); return; }
 
-            string anchorPath = gameObject.name.Contains("Left") ? "TrackingSpace/LeftHandAnchor" : "TrackingSpace/RightHandAnchor";
-            Transform anchor = rig.transform.Find(anchorPath);
-            if (anchor == null)
-            {
-                Debug.LogError($"アンカーが見つかりませんでした。パス: '{anchorPath}' が正しいか確認してください。", this);
-                return;
-            }
+            string anchorPath = gameObject.name.Contains("Left") ? "LeftHandAnchor" : "RightHandAnchor";
+            Transform anchor = _localTrackingSpace.Find(anchorPath);
+            if (anchor == null) { Debug.LogError($"アンカーが見つかりませんでした。パス: {anchorPath}"); return; }
 
             _localSkeleton = anchor.GetComponentInChildren<OVRSkeleton>();
-            if (_localSkeleton == null)
-            {
-                Debug.LogError($"'{anchor.name}' 内で同期元のOVRSkeletonが見つかりませんでした。", this);
-            }
+            if (_localSkeleton == null) { Debug.LogError($"'{anchor.name}' 内で同期元のOVRSkeletonが見つかりませんでした。"); }
         }
 
         private void OnPoseChanged(HandPoseData previousValue, HandPoseData newValue)
@@ -60,18 +83,13 @@ namespace Oculus.Interaction
 
             if (joints == null || joints.Count == 0 || rotations == null || joints.Count != rotations.Length) return;
 
-            // ### ここからロジックを修正 ###
-            // Step 1: HandVisualの関節リストから手首ボーン(0番目)を取得
             Transform wristBone = joints[0];
-
-            // Step 2: 受信したデータで「手首」の位置・回転を更新
             if (wristBone != null)
             {
-                wristBone.position = newValue.RootPosition;
-                wristBone.rotation = newValue.RootRotation;
+                wristBone.localPosition = newValue.RootPosition;
+                wristBone.localRotation = newValue.RootRotation * _rotationOffset;
             }
             
-            // Step 3: 「指の関節」の向きを更新 (手首は除くため、ループは1から開始)
             for (int i = 1; i < joints.Count; i++)
             {
                 if (joints[i] != null && i < rotations.Length)
@@ -85,20 +103,23 @@ namespace Oculus.Interaction
         {
             if (!IsOwner) return;
 
-            if (_localSkeleton == null || !_localSkeleton.IsInitialized || !_localSkeleton.IsDataValid)
+            if (_localSkeleton == null || !_localSkeleton.IsInitialized || !_localSkeleton.IsDataValid || _localTrackingSpace == null)
             {
                 return;
             }
 
             var boneTransforms = _localSkeleton.BoneTransforms;
             if (boneTransforms == null || boneTransforms.Count == 0) return;
-            
+
             Transform localWristBone = boneTransforms[0];
+            
+            Vector3 relativePos = _localTrackingSpace.InverseTransformPoint(localWristBone.position);
+            Quaternion relativeRot = Quaternion.Inverse(_localTrackingSpace.rotation) * localWristBone.rotation;
 
             HandPoseData currentPose = new HandPoseData
             {
-                RootPosition = localWristBone.position,
-                RootRotation = localWristBone.rotation * _rotationOffset,
+                RootPosition = relativePos,
+                RootRotation = relativeRot,
                 JointRotations = new Quaternion[boneTransforms.Count]
             };
 

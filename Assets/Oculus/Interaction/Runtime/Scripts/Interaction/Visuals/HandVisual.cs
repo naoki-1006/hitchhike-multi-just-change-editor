@@ -43,10 +43,9 @@ namespace Oculus.Interaction
         public IList<Transform> Joints => _jointTransforms;
         public bool ForceOffVisibility { get; set; }
         public bool EnableAutomaticSkeletonSearch { get; set; } = true;
-
+        
+        private Transform _sourceTrackingSpace;
         private bool _started = false;
-
-        // 手の向きを補正するための回転オフセット
         private readonly Quaternion _rotationOffset = Quaternion.Euler(0, 180f, 0);
 
         protected virtual void Awake()
@@ -87,8 +86,15 @@ namespace Oculus.Interaction
                     yield break;
                 }
 
-                string anchorPath = gameObject.name.Contains("Left") ? "TrackingSpace/LeftHandAnchor" : "TrackingSpace/RightHandAnchor";
-                Transform anchor = rig.transform.Find(anchorPath);
+                _sourceTrackingSpace = rig.transform.Find("TrackingSpace");
+                if (_sourceTrackingSpace == null)
+                {
+                    Debug.LogWarning("TrackingSpaceが見つかりませんでした。");
+                    yield break;
+                }
+
+                string anchorPath = gameObject.name.Contains("Left") ? "LeftHandAnchor" : "RightHandAnchor";
+                Transform anchor = _sourceTrackingSpace.Find(anchorPath);
 
                 if (anchor != null)
                 {
@@ -157,15 +163,16 @@ namespace Oculus.Interaction
             if (_overrideSkeleton != null)
             {
                 var sourceBones = _overrideSkeleton.BoneTransforms;
-                if (sourceBones == null || sourceBones.Count == 0) return;
+                if (sourceBones == null || sourceBones.Count == 0 || _sourceTrackingSpace == null) return;
 
                 Transform sourceWrist = sourceBones[0];
                 if (_root != null && sourceWrist != null)
                 {
-                    _root.position = sourceWrist.position;
-                    // ### ここを修正 ###
-                    // Y軸周りに180度回転させる補正を追加
-                    _root.rotation = sourceWrist.rotation * _rotationOffset;
+                    Vector3 relativePos = _sourceTrackingSpace.InverseTransformPoint(sourceWrist.position);
+                    Quaternion relativeRot = Quaternion.Inverse(_sourceTrackingSpace.rotation) * sourceWrist.rotation;
+
+                    _root.localPosition = relativePos;
+                    _root.localRotation = relativeRot * _rotationOffset;
                 }
 
                 for (int i = 0; i < sourceBones.Count; i++)
