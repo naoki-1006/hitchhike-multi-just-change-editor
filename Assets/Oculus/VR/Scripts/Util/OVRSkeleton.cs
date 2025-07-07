@@ -192,6 +192,13 @@ public class OVRSkeleton : MonoBehaviour
     public bool IsInitialized { get; private set; }
     public bool IsDataValid { get; private set; }
     public bool IsDataHighConfidence { get; private set; }
+    // ### ここから追加 ###
+    /// <summary>
+    /// 初期化後に利用可能になる、ボーンのTransformの読み取り専用リスト。
+    /// </summary>
+    public IList<Transform> BoneTransforms { get; private set; }
+    private List<Transform> _boneTransforms; // BoneTransformsの書き込み用実体
+    // ### ここまで追加 ###
     public IList<OVRBone> Bones { get; protected set; }
     public IList<OVRBone> BindPoses { get; private set; }
     public IList<OVRBoneCapsule> Capsules { get; private set; }
@@ -204,6 +211,11 @@ public class OVRSkeleton : MonoBehaviour
         {
             _dataProvider = GetComponent<IOVRSkeletonDataProvider>();
         }
+
+        // ### ここから追加 ###
+        _boneTransforms = new List<Transform>();
+        BoneTransforms = _boneTransforms.AsReadOnly();
+        // ### ここまで追加 ###
 
         _bones = new List<OVRBone>();
         Bones = _bones.AsReadOnly();
@@ -324,6 +336,14 @@ public class OVRSkeleton : MonoBehaviour
                 _bones[i].Transform.SetParent(_bones[_bones[i].ParentBoneIndex].Transform, false);
             }
         }
+        // ### ここから追加 (InitializeBonesメソッドの末尾) ###
+        // _bonesリストが完全に設定された後、Transformだけを抽出したリストを作成する
+        _boneTransforms.Clear();
+        for (int i = 0; i < _bones.Count; ++i)
+        {
+            _boneTransforms.Add(_bones[i].Transform);
+        }
+        // ### ここまで追加 ###
     }
 
     private void InitializeBindPose()
