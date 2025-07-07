@@ -10,7 +10,7 @@ namespace Oculus.Interaction
         private Transform _localTrackingSpace;
         private OVRSkeleton _localSkeleton;
 
-        private readonly Quaternion _rotationOffset = Quaternion.Euler(0, 180f, 0);
+        private readonly Quaternion _rotationOffset = Quaternion.Euler(0, 0f, 0);
 
         private readonly NetworkVariable<HandPoseData> _networkHandPose = new NetworkVariable<HandPoseData>(
             default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -22,83 +22,33 @@ namespace Oculus.Interaction
 
         public override void OnNetworkSpawn()
         {
+            // HandVisualのデフォルトの更新機能を無効化する
+            if (_handVisual != null)
+            {
+                _handVisual.enabled = false;
+            }
+
             if (IsOwner)
             {
-                GainedOwnership();
+                FindLocalSkeleton();
             }
             else
             {
-                LostOwnership();
+                _networkHandPose.OnValueChanged += OnPoseChanged;
             }
         }
 
-        public override void OnGainedOwnership()
-        {
-            base.OnGainedOwnership();
-            GainedOwnership();
-        }
-
-        public override void OnLostOwnership()
-        {
-            base.OnLostOwnership();
-            LostOwnership();
-        }
-
-        private void GainedOwnership()
-        {
-            if (!IsOwner) return; // 念のため
-            _handVisual.EnableAutomaticSkeletonSearch = true; // ローカルでの自動検索をON
-            _networkHandPose.OnValueChanged -= OnPoseChanged;
-            FindLocalSkeleton();
-        }
-
-        private void LostOwnership()
-        {
-            _handVisual.EnableAutomaticSkeletonSearch = false; // 他人の手は自動検索をOFF
-            _localSkeleton = null;
-            _localTrackingSpace = null;
-            _networkHandPose.OnValueChanged += OnPoseChanged;
-        }
-
-        private void FindLocalSkeleton()
-        {
-            var rig = GameObject.Find("OVRCameraRig");
-            if (rig == null) { Debug.LogError("OVRCameraRigが見つかりませんでした。"); return; }
-            
-            _localTrackingSpace = rig.transform.Find("TrackingSpace");
-            if (_localTrackingSpace == null) { Debug.LogError("TrackingSpaceが見つかりませんでした。"); return; }
-
-            string anchorPath = gameObject.name.Contains("Left") ? "LeftHandAnchor" : "RightHandAnchor";
-            Transform anchor = _localTrackingSpace.Find(anchorPath);
-            if (anchor == null) { Debug.LogError($"アンカーが見つかりませんでした。パス: {anchorPath}"); return; }
-
-            _localSkeleton = anchor.GetComponentInChildren<OVRSkeleton>();
-            if (_localSkeleton == null) { Debug.LogError($"'{anchor.name}' 内で同期元のOVRSkeletonが見つかりませんでした。"); }
-        }
-
+        // サーバーからデータが送られてきたときに呼ばれる
         private void OnPoseChanged(HandPoseData previousValue, HandPoseData newValue)
         {
-            var joints = _handVisual.Joints;
-            var rotations = newValue.JointRotations;
-
-            if (joints == null || joints.Count == 0 || rotations == null || joints.Count != rotations.Length) return;
-
-            Transform wristBone = joints[0];
-            if (wristBone != null)
-            {
-                wristBone.localPosition = newValue.RootPosition;
-                wristBone.localRotation = newValue.RootRotation * _rotationOffset;
-            }
-            
-            for (int i = 1; i < joints.Count; i++)
-            {
-                if (joints[i] != null && i < rotations.Length)
-                {
-                    joints[i].localRotation = rotations[i];
-                }
-            }
+            // ### 追加 ###
+            // このオブジェクトの現在のオーナーIDと、送られてきたデータのIDが一致しない場合は無視する
+            if (OwnerClientId != newValue.ClientId) return;
+            // 受信したデータでポーズを適用
+            ApplyPose(newValue);
         }
 
+        // 自分（オーナー）のトラッキングデータを更新する
         void Update()
         {
             if (!IsOwner) return;
@@ -113,13 +63,18 @@ namespace Oculus.Interaction
 
             Transform localWristBone = boneTransforms[0];
             
+            // 手首の相対座標・回転を取得
             Vector3 relativePos = _localTrackingSpace.InverseTransformPoint(localWristBone.position);
             Quaternion relativeRot = Quaternion.Inverse(_localTrackingSpace.rotation) * localWristBone.rotation;
 
+            // 送信するポーズデータを作成
             HandPoseData currentPose = new HandPoseData
             {
+                // ### 追加 ### 自分のクライアントIDをデータに含める
+                ClientId = OwnerClientId,
+
                 RootPosition = relativePos,
-                RootRotation = relativeRot,
+                RootRotation = relativeRot, // 向きの補正は受信側で行うため、生のデータを送信
                 JointRotations = new Quaternion[boneTransforms.Count]
             };
 
@@ -128,7 +83,57 @@ namespace Oculus.Interaction
                 currentPose.JointRotations[i] = boneTransforms[i].localRotation;
             }
 
+            // ローカルハンドの表示を更新
+            ApplyPose(currentPose);
+            
+            // ネットワークにポーズデータを送信
             _networkHandPose.Value = currentPose;
+        }
+
+        /// <summary>
+        /// 受け取ったポーズデータをHandVisualに適用する共通メソッド
+        /// </summary>
+        private void ApplyPose(HandPoseData pose)
+        {
+            var joints = _handVisual.Joints;
+            if (joints == null || joints.Count == 0) return;
+
+            Transform wristBone = joints[0];
+
+            // 手首の位置・回転を適用
+            if (wristBone != null)
+            {
+                wristBone.localPosition = pose.RootPosition;
+                // ここで向きを180度補正する
+                wristBone.localRotation = pose.RootRotation * _rotationOffset;
+            }
+            
+            // 指の関節の向きを適用
+            if (pose.JointRotations == null || joints.Count != pose.JointRotations.Length) return;
+            for (int i = 1; i < joints.Count; i++)
+            {
+                if (joints[i] != null)
+                {
+                    joints[i].localRotation = pose.JointRotations[i];
+                }
+            }
+        }
+
+        // ローカルのOVRSkeletonを探す処理（変更なし）
+        private void FindLocalSkeleton()
+        {
+            var rig = GameObject.Find("OVRCameraRig");
+            if (rig == null) { Debug.LogError("OVRCameraRigが見つかりませんでした。"); return; }
+            
+            _localTrackingSpace = rig.transform.Find("TrackingSpace");
+            if (_localTrackingSpace == null) { Debug.LogError("TrackingSpaceが見つかりませんでした。"); return; }
+
+            string anchorPath = gameObject.name.Contains("Left") ? "LeftHandAnchor" : "RightHandAnchor";
+            Transform anchor = _localTrackingSpace.Find(anchorPath);
+            if (anchor == null) { Debug.LogError($"アンカーが見つかりませんでした。パス: {anchorPath}"); return; }
+
+            _localSkeleton = anchor.GetComponentInChildren<OVRSkeleton>();
+            if (_localSkeleton == null) { Debug.LogError($"'{anchor.name}' 内で同期元のOVRSkeletonが見つかりませんでした。"); }
         }
     }
 }

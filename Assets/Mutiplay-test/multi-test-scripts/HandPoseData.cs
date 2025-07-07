@@ -3,20 +3,20 @@ using Unity.Netcode;
 
 public struct HandPoseData : INetworkSerializable
 {
-    // ### ここから追加 ###
+    // ### 追加 ### 送信者のクライアントID
+    public ulong ClientId;
+
     public Vector3 RootPosition;
     public Quaternion RootRotation;
-    // ### ここまで追加 ###
-
     public Quaternion[] JointRotations;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
-        // ### ここから追加 ###
-        // Rootの情報を書き込み/読み込み
+        // ### 追加 ### ClientIdの送受信処理
+        serializer.SerializeValue(ref ClientId);
+
         serializer.SerializeValue(ref RootPosition);
         serializer.SerializeValue(ref RootRotation);
-        // ### ここまで追加 ###
 
         int length = 0;
         if (!serializer.IsReader)
