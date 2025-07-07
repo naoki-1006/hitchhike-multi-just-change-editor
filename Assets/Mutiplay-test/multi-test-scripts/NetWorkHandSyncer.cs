@@ -6,14 +6,12 @@ namespace Oculus.Interaction
     [RequireComponent(typeof(HandVisual))]
     public class NetworkHandSyncer : NetworkBehaviour
     {
-        [Header("ターゲット")]
-        [Tooltip("ポーズを適用するアバターの「手首」のTransform")]
-        public Transform WristTransform;
+        // ### 削除 ### 手動で設定していたWristTransformフィールドを削除
+        // public Transform WristTransform;
 
         private HandVisual _handVisual;
         private OVRSkeleton _localSkeleton;
 
-        // 手の向きを補正するための回転オフセット
         private readonly Quaternion _rotationOffset = Quaternion.Euler(0, 180f, 0);
 
         private readonly NetworkVariable<HandPoseData> _networkHandPose = new NetworkVariable<HandPoseData>(
@@ -57,17 +55,23 @@ namespace Oculus.Interaction
 
         private void OnPoseChanged(HandPoseData previousValue, HandPoseData newValue)
         {
-            if (WristTransform != null)
-            {
-                WristTransform.position = newValue.RootPosition;
-                WristTransform.rotation = newValue.RootRotation;
-            }
-
             var joints = _handVisual.Joints;
             var rotations = newValue.JointRotations;
 
-            if (joints == null || rotations == null || joints.Count != rotations.Length) return;
+            if (joints == null || joints.Count == 0 || rotations == null || joints.Count != rotations.Length) return;
 
+            // ### ここからロジックを修正 ###
+            // Step 1: HandVisualの関節リストから手首ボーン(0番目)を取得
+            Transform wristBone = joints[0];
+
+            // Step 2: 受信したデータで「手首」の位置・回転を更新
+            if (wristBone != null)
+            {
+                wristBone.position = newValue.RootPosition;
+                wristBone.rotation = newValue.RootRotation;
+            }
+            
+            // Step 3: 「指の関節」の向きを更新 (手首は除くため、ループは1から開始)
             for (int i = 1; i < joints.Count; i++)
             {
                 if (joints[i] != null && i < rotations.Length)
@@ -88,21 +92,13 @@ namespace Oculus.Interaction
 
             var boneTransforms = _localSkeleton.BoneTransforms;
             if (boneTransforms == null || boneTransforms.Count == 0) return;
-
-            // ### ここからロジックを全面的に修正 ###
-
-            // Step 1: ローカルの「手首ボーン」を取得
+            
             Transform localWristBone = boneTransforms[0];
 
             HandPoseData currentPose = new HandPoseData
             {
-                // Step 2: 「手首ボーン」のワールド位置をセット
                 RootPosition = localWristBone.position,
-                
-                // Step 3: 「手首ボーン」のワールド回転に「180度の補正」を加えてからセット
                 RootRotation = localWristBone.rotation * _rotationOffset,
-                
-                // Step 4: 全関節のlocalRotationを配列にキャプチャ
                 JointRotations = new Quaternion[boneTransforms.Count]
             };
 
@@ -111,7 +107,6 @@ namespace Oculus.Interaction
                 currentPose.JointRotations[i] = boneTransforms[i].localRotation;
             }
 
-            // Step 5: 補正済みのデータを送信
             _networkHandPose.Value = currentPose;
         }
     }
