@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
+namespace HitchHikeMultiplayer{
 public class OwnershipRequester : MonoBehaviour
 {
     // シーン内の全ての共有ハンドのOwnershipHandlerを保持するリスト
@@ -50,4 +51,8 @@ public class OwnershipRequester : MonoBehaviour
             }
         }
     }
+    public void SetExclusiveOwnership(){
+        SetExclusiveOwnership(name);
+    }
+}
 }
