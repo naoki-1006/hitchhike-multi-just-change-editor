@@ -11,6 +11,10 @@ namespace HitchHikeMultiplayer
         
         public static LocalSkeleton Instance { private set; get; }
 
+        public Transform LocalTrackingSpace => _localTrackingSpace;
+        [SerializeField]
+        Transform _localTrackingSpace;
+
         public OVRSkeleton LeftSkeleton => _left;
         [SerializeField]
         OVRSkeleton _left;

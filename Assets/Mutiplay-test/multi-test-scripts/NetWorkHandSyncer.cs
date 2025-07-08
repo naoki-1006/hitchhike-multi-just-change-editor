@@ -133,7 +133,7 @@ namespace HitchHikeMultiplayer
             
             _localTrackingSpace = rig.transform.Find("TrackingSpace");
             if (_localTrackingSpace == null) { Debug.LogError("TrackingSpaceが見つかりませんでした。"); return; }
-
+            
             string anchorPath = gameObject.name.Contains("Left") ? "LeftHandAnchor" : "RightHandAnchor";
             Transform anchor = _localTrackingSpace.Find(anchorPath);
             if (anchor == null) { Debug.LogError($"アンカーが見つかりませんでした。パス: {anchorPath}"); return; }
@@ -141,8 +141,9 @@ namespace HitchHikeMultiplayer
             _localSkeleton = anchor.GetComponentInChildren<OVRSkeleton>();
             if (_localSkeleton == null) { Debug.LogError($"'{anchor.name}' 内で同期元のOVRSkeletonが見つかりませんでした。"); }
             */
-
+            
             var localSkeleton = LocalSkeleton.Instance;
+            _localTrackingSpace = localSkeleton.LocalTrackingSpace;
             _localSkeleton = _isLeft ? localSkeleton.LeftSkeleton : localSkeleton.RightSkeleton;
         }
     }
