@@ -14,6 +14,9 @@ namespace Oculus.Interaction
         private readonly NetworkVariable<HandPoseData> _networkHandPose = new NetworkVariable<HandPoseData>(
             default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+        [SerializeField]
+        private OwnershipHandler _ownershipHandler;
+
         void Awake()
         {
             _handVisual = GetComponent<HandVisual>();
@@ -69,7 +72,10 @@ namespace Oculus.Interaction
 
         void Update()
         {
-            if (!IsOwner) return;
+            //if (!IsOwner) return;
+            // ここで、ownershipHandlerを参照して、ownerであるならば通過、そうでないならearly returnしておわる
+            var ownerId = _ownershipHandler.OwnerClientId;
+            if (ownerId != NetworkObject.OwnerClientId) return;
 
             // ### 修正 ### ローカルのHandVisualからポーズを取得する
             if (_localHandVisualSource == null || _localHandVisualSource.Root == null || _localHandVisualSource.Joints == null)
