@@ -147,7 +147,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2180217309043995098, guid: 23b20980e0fd3a74fb8274c905addd20, type: 3}
       propertyPath: m_Name
-      value: ShareHand (1)
+      value: ShareHand2
       objectReference: {fileID: 0}
     - target: {fileID: 3215316875391122348, guid: 23b20980e0fd3a74fb8274c905addd20, type: 3}
       propertyPath: m_LocalPosition.x
@@ -249,7 +249,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 257593611}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 83f59fdf12e88ea48b4f894b2004e8a8, type: 3}
   m_Name: 
@@ -1225,7 +1225,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1777558419}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 83f59fdf12e88ea48b4f894b2004e8a8, type: 3}
   m_Name: 
@@ -1549,7 +1549,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2180217309043995098, guid: 23b20980e0fd3a74fb8274c905addd20, type: 3}
       propertyPath: m_Name
-      value: ShareHand
+      value: ShareHand1
       objectReference: {fileID: 0}
     - target: {fileID: 3215316875391122348, guid: 23b20980e0fd3a74fb8274c905addd20, type: 3}
       propertyPath: m_LocalPosition.x
