@@ -74,7 +74,7 @@ namespace Oculus.Interaction
         {
             //if (!IsOwner) return;
             // ここで、ownershipHandlerを参照して、ownerであるならば通過、そうでないならearly returnしておわる
-            var ownerId = _ownershipHandler.OwnerClientId;
+            var ownerId = _ownershipHandler.OwnerId;
             if (ownerId != NetworkObject.OwnerClientId) return;
 
             // ### 修正 ### ローカルのHandVisualからポーズを取得する
