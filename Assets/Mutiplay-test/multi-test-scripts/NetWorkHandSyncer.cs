@@ -1,7 +1,9 @@
 using UnityEngine;
 using Unity.Netcode;
+using Oculus.Interaction;
 
-namespace Oculus.Interaction
+//namespace Oculus.Interaction
+namespace HitchHikeMultiplayer
 {
     [RequireComponent(typeof(HandVisual))]
     public class NetworkHandSyncer : NetworkBehaviour
@@ -9,6 +11,9 @@ namespace Oculus.Interaction
         private HandVisual _handVisual;
         private Transform _localTrackingSpace;
         private OVRSkeleton _localSkeleton;
+
+        [SerializeField]
+        bool _isLeft;
 
         private readonly Quaternion _rotationOffset = Quaternion.Euler(0, 0f, 0);
 
@@ -122,6 +127,7 @@ namespace Oculus.Interaction
         // ローカルのOVRSkeletonを探す処理（変更なし）
         private void FindLocalSkeleton()
         {
+            /*
             var rig = GameObject.Find("OVRCameraRig");
             if (rig == null) { Debug.LogError("OVRCameraRigが見つかりませんでした。"); return; }
             
@@ -134,6 +140,10 @@ namespace Oculus.Interaction
 
             _localSkeleton = anchor.GetComponentInChildren<OVRSkeleton>();
             if (_localSkeleton == null) { Debug.LogError($"'{anchor.name}' 内で同期元のOVRSkeletonが見つかりませんでした。"); }
+            */
+
+            var localSkeleton = LocalSkeleton.Instance;
+            _localSkeleton = _isLeft ? localSkeleton.LeftSkeleton : localSkeleton.RightSkeleton;
         }
     }
 }
