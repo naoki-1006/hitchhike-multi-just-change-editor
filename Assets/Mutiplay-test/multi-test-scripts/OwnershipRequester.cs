@@ -1,16 +1,18 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 
 public class OwnershipRequester : MonoBehaviour
 {
-    // シーンに一つしかない想定のため、FindObjectOfTypeで探す
-    private OwnershipHandler _targetHandler;
+    // シーン内の全ての共有ハンドのOwnershipHandlerを保持するリスト
+    private List<OwnershipHandler> _allHandlers = new List<OwnershipHandler>();
 
     void Start()
     {
-        // 씬 내의 공유 핸드를 찾습니다.
-        _targetHandler = FindObjectOfType<OwnershipHandler>();
+        // シーンが読み込まれた際に、一度だけ全てのOwnershipHandlerを探してリストに格納する
+        _allHandlers = FindObjectsOfType<OwnershipHandler>().ToList();
 
-        if (_targetHandler == null)
+        if (_allHandlers.Count == 0)
         {
             Debug.LogWarning("シーンにOwnershipHandlerを持つオブジェクトが見つかりませんでした。");
         }
@@ -18,17 +20,33 @@ public class OwnershipRequester : MonoBehaviour
 
     void Update()
     {
-        // 'O'キーが押されたら所有権を要求する
-        if (Input.GetKeyDown(KeyCode.O))
+        // 数字キーの入力をチェック
+        if (Input.GetKeyDown(KeyCode.Alpha1)) { SetExclusiveOwnership("1"); }
+        if (Input.GetKeyDown(KeyCode.Alpha2)) { SetExclusiveOwnership("2"); }
+        if (Input.GetKeyDown(KeyCode.Alpha3)) { SetExclusiveOwnership("3"); }
+        if (Input.GetKeyDown(KeyCode.Alpha4)) { SetExclusiveOwnership("4"); }
+    }
+
+    /// <summary>
+    /// 指定された識別子を持つハンドの所有権を要求し、それ以外の所有権を放棄する
+    /// </summary>
+    /// <param name="targetIdentifier">オブジェクト名に含まれる数字（"1", "2" など）</param>
+    private void SetExclusiveOwnership(string targetIdentifier)
+    {
+        Debug.Log($"'{targetIdentifier}' を含むハンドの所有権を要求します。");
+
+        foreach (var handler in _allHandlers)
         {
-            if (_targetHandler != null)
+            // オブジェクト名にターゲットの数字が含まれているかチェック
+            if (handler.gameObject.name.Contains(targetIdentifier))
             {
-                Debug.Log("キーボード入力で所有権を要求します...");
-                _targetHandler.RequestOwnership();
+                // これがターゲットなので、所有権を要求
+                handler.RequestOwnership();
             }
             else
             {
-                Debug.LogError("所有権を要求するターゲットが見つかりません。");
+                // これ以外のものなので、所有権を放棄（もし自分がオーナーなら）
+                handler.ReleaseOwnership();
             }
         }
     }

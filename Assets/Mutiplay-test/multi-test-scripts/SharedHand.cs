@@ -3,16 +3,13 @@ using Unity.Netcode;
 
 namespace Oculus.Interaction
 {
-    // ### 修正 ### NetworkObjectは親が持つため、この行を削除
-    // [RequireComponent(typeof(NetworkObject))]
     [RequireComponent(typeof(HandVisual))]
     public class SharedHand : NetworkBehaviour
     {
         private HandVisual _handVisual;
-        private OVRSkeleton _localSkeleton;
-        private Transform _localTrackingSpace;
 
-        private readonly Quaternion _rotationOffset = Quaternion.Euler(0, 180f, 0);
+        // ### 修正 ### ローカルの参照先を、OVRSkeletonからHandVisualに変更
+        private HandVisual _localHandVisualSource;
 
         private readonly NetworkVariable<HandPoseData> _networkHandPose = new NetworkVariable<HandPoseData>(
             default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -26,13 +23,13 @@ namespace Oculus.Interaction
         {
             _handVisual.enabled = false;
             _networkHandPose.OnValueChanged += OnPoseChanged;
-            
+
             if (IsOwner)
             {
                 GainedOwnership();
             }
         }
-        
+
         public override void OnNetworkDespawn()
         {
             _networkHandPose.OnValueChanged -= OnPoseChanged;
@@ -53,13 +50,15 @@ namespace Oculus.Interaction
         private void GainedOwnership()
         {
             if (!IsOwner) return;
-            FindLocalSkeleton();
+            // 参照先をクリアし、新しいソースを探す
+            _localHandVisualSource = null;
+            FindLocalHandSource();
         }
 
         private void LostOwnership()
         {
-            _localSkeleton = null;
-            _localTrackingSpace = null;
+            // オーナーでなくなったので、参照をなくす
+            _localHandVisualSource = null;
         }
 
         private void OnPoseChanged(HandPoseData previousValue, HandPoseData newValue)
@@ -72,37 +71,38 @@ namespace Oculus.Interaction
         {
             if (!IsOwner) return;
 
-            if (_localSkeleton == null || !_localSkeleton.IsInitialized || !_localSkeleton.IsDataValid)
+            // ### 修正 ### ローカルのHandVisualからポーズを取得する
+            if (_localHandVisualSource == null || _localHandVisualSource.Root == null || _localHandVisualSource.Joints == null)
             {
+                // まだソースが見つかっていない場合は探し続ける
+                FindLocalHandSource();
                 return;
             }
 
-            var boneTransforms = _localSkeleton.BoneTransforms;
-            if (boneTransforms == null || boneTransforms.Count == 0) return;
-
-            Transform localWristBone = boneTransforms[0];
-            
-            Vector3 relativePos = _localTrackingSpace.InverseTransformPoint(localWristBone.position);
-            Quaternion relativeRot = Quaternion.Inverse(_localTrackingSpace.rotation) * localWristBone.rotation;
+            var sourceJoints = _localHandVisualSource.Joints;
+            var sourceRoot = _localHandVisualSource.Root;
 
             HandPoseData currentPose = new HandPoseData
             {
                 ClientId = OwnerClientId,
-                RootPosition = relativePos,
-                RootRotation = relativeRot,
-                JointRotations = new Quaternion[boneTransforms.Count]
+                // ソースとなるHandVisualの相対的な位置・回転を取得
+                RootPosition = sourceRoot.localPosition,
+                RootRotation = sourceRoot.localRotation,
+                JointRotations = new Quaternion[sourceJoints.Count]
             };
 
-            for (int i = 0; i < boneTransforms.Count; i++)
+            for (int i = 0; i < sourceJoints.Count; i++)
             {
-                currentPose.JointRotations[i] = boneTransforms[i].localRotation;
+                currentPose.JointRotations[i] = sourceJoints[i].localRotation;
             }
 
+            // 自分の見た目も更新
             ApplyPose(currentPose);
             
+            // ネットワークに送信
             _networkHandPose.Value = currentPose;
         }
-        
+
         private void ApplyPose(HandPoseData pose)
         {
             var joints = _handVisual.Joints;
@@ -112,11 +112,12 @@ namespace Oculus.Interaction
             if (handRoot != null)
             {
                 handRoot.localPosition = pose.RootPosition;
-                handRoot.localRotation = pose.RootRotation * _rotationOffset;
+                // ### 修正 ### 送信されるデータは既に補正済みなので、オフセットは不要
+                handRoot.localRotation = pose.RootRotation;
             }
 
             if (pose.JointRotations == null || joints.Count != pose.JointRotations.Length) return;
-            
+
             for (int i = 0; i < joints.Count; i++)
             {
                 if (joints[i] != null)
@@ -126,20 +127,40 @@ namespace Oculus.Interaction
             }
         }
 
-        private void FindLocalSkeleton()
+        /// <summary>
+        /// 現在のオーナーのプレイヤーオブジェクトを探し、そこから対応するHandVisualを見つける
+        /// </summary>
+        private void FindLocalHandSource()
         {
-            var rig = GameObject.Find("OVRCameraRig");
-            if (rig == null) { Debug.LogError("OVRCameraRigが見つかりませんでした。"); return; }
-            
-            _localTrackingSpace = rig.transform.Find("TrackingSpace");
-            if (_localTrackingSpace == null) { Debug.LogError("TrackingSpaceが見つかりませんでした。"); return; }
+            if (!IsOwner) return;
+            if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient) return;
 
-            string anchorPath = gameObject.name.Contains("Left") ? "LeftHandAnchor" : "RightHandAnchor";
-            Transform anchor = _localTrackingSpace.Find(anchorPath);
-            if (anchor == null) { Debug.LogError($"アンカーが見つかりませんでした。パス: {anchorPath}"); return; }
+            // 自分のプレイヤーオブジェクトを取得
+            NetworkObject playerObject = NetworkManager.Singleton.LocalClient.PlayerObject;
+            if (playerObject == null)
+            {
+                Debug.LogWarning($"Owner (ID: {OwnerClientId}) のPlayerObjectが見つかりません。");
+                return;
+            }
 
-            _localSkeleton = anchor.GetComponentInChildren<OVRSkeleton>();
-            if (_localSkeleton == null) { Debug.LogError($"'{anchor.name}' 内で同期元のOVRSkeletonが見つかりませんでした。"); }
+            // 探すべき手が左手か右手かを、このオブジェクトの名前から判断
+            bool amILeftHand = gameObject.name.Contains("Left");
+
+            // プレイヤーオブジェクトの子から、全てのHandVisualを探す
+            HandVisual[] allHandVisuals = playerObject.GetComponentsInChildren<HandVisual>();
+            foreach (var visual in allHandVisuals)
+            {
+                // この共有ハンド自身は除外する
+                if (visual == _handVisual) continue;
+
+                bool isTargetLeftHand = visual.gameObject.name.Contains("Left");
+                if (amILeftHand == isTargetLeftHand)
+                {
+                    _localHandVisualSource = visual;
+                    Debug.Log($"同期元のHandVisualとして、プレイヤー'{playerObject.name}'の'{visual.gameObject.name}'を発見しました。");
+                    return;
+                }
+            }
         }
     }
 }

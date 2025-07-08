@@ -3,22 +3,36 @@ using Unity.Netcode;
 
 public class OwnershipHandler : NetworkBehaviour
 {
-    // プレイヤーがこのメソッドを呼び出すことで、所有権を要求する
+    /// <summary>
+    /// 外部から呼び出して、このオブジェクトの所有権を要求する
+    /// </summary>
     public void RequestOwnership()
     {
-        // 既に自分がオーナーである場合は何もしない
         if (IsOwner) return;
-
-        // サーバーに対して、所有権を自分に移すように要求する
         RequestOwnershipServerRpc();
+    }
+
+    /// <summary>
+    /// 外部から呼び出して、このオブジェクトの所有権を放棄する
+    /// </summary>
+    public void ReleaseOwnership()
+    {
+        if (!IsOwner) return;
+        ReleaseOwnershipServerRpc();
     }
 
     [ServerRpc(RequireOwnership = false)]
     private void RequestOwnershipServerRpc(ServerRpcParams rpcParams = default)
     {
-        // ### 修正点 ### ChangeOwner -> ChangeOwnership に変更
         GetComponent<NetworkObject>().ChangeOwnership(rpcParams.Receive.SenderClientId);
-        
         Debug.Log($"Hand ownership transferred to Client ID: {rpcParams.Receive.SenderClientId}");
+    }
+
+    [ServerRpc] // オーナーだけが呼べる
+    private void ReleaseOwnershipServerRpc()
+    {
+        // 所有権をサーバー(ClientId 0)に戻す
+        GetComponent<NetworkObject>().ChangeOwnership(0);
+        Debug.Log($"Hand ownership released by Client ID: {OwnerClientId}");
     }
 }
