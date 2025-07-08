@@ -23,7 +23,7 @@ public class OwnershipHandler : NetworkBehaviour
     /// </summary>
     public void ReleaseOwnership()
     {
-        //if (!IsOwner) return;
+        if (!IsOwner) return;
         ReleaseOwnershipServerRpc();
     }
 
