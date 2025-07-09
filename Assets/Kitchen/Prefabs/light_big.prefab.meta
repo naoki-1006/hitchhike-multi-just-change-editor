@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: bd8a38ddc066c06458ec27bc34905a26
+timeCreated: 1509311399
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 102100
+  packageName: Kitchen Interior
+  packageVersion: 1.0
+  assetPath: Assets/Kitchen/Prefabs/light_big.prefab
+  uploadId: 208981

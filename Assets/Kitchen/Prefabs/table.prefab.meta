@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: b3442c83ac4a1cc41b01cb13182649ec
+timeCreated: 1509311459
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 102100
+  packageName: Kitchen Interior
+  packageVersion: 1.0
+  assetPath: Assets/Kitchen/Prefabs/table.prefab
+  uploadId: 208981

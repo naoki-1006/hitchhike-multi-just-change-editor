@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8d258a1eb9f930541b3dd2803501a9f7
+timeCreated: 1507391455
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 102100
+  packageName: Kitchen Interior
+  packageVersion: 1.0
+  assetPath: Assets/Kitchen/Kitchen.unity
+  uploadId: 208981

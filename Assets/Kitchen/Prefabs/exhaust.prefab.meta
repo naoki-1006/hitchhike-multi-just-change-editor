@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 3ab9ebd0c2044034e9932cb02b6c9bdb
+timeCreated: 1509311385
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 102100
+  packageName: Kitchen Interior
+  packageVersion: 1.0
+  assetPath: Assets/Kitchen/Prefabs/exhaust.prefab
+  uploadId: 208981

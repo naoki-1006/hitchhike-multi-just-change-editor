@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 56778fcf8cee2d64a9e6e2aa761f2d42
+timeCreated: 1509311372
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 102100
+  packageName: Kitchen Interior
+  packageVersion: 1.0
+  assetPath: Assets/Kitchen/Prefabs/cupboard3.prefab
+  uploadId: 208981

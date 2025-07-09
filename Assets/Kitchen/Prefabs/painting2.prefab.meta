@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: e779cf697987e0b49820dfc7a0dec4c9
+timeCreated: 1509311411
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 102100
+  packageName: Kitchen Interior
+  packageVersion: 1.0
+  assetPath: Assets/Kitchen/Prefabs/painting2.prefab
+  uploadId: 208981
