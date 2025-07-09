@@ -113,7 +113,7 @@ namespace Oculus.Interaction
             if (joints == null || joints.Count == 0) return;
 
             // 手の親（ルート）を取得し、そこに相対的な位置・回転を適用
-            Transform handRoot = joints[0].parent;
+            Transform handRoot = joints[0];
             if (handRoot != null)
             {
                 handRoot.localPosition = pose.RootPosition;

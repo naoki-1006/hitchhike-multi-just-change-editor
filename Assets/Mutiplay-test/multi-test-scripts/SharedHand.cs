@@ -86,7 +86,7 @@ namespace Oculus.Interaction
             }
 
             var sourceJoints = _localHandVisualSource.Joints;
-            var sourceRoot = _localHandVisualSource.Root;
+            var sourceRoot = sourceJoints[0];
 
             HandPoseData currentPose = new HandPoseData
             {
@@ -114,7 +114,7 @@ namespace Oculus.Interaction
             var joints = _handVisual.Joints;
             if (joints == null || joints.Count == 0) return;
 
-            Transform handRoot = joints[0].parent;
+            Transform handRoot = joints[0];
             if (handRoot != null)
             {
                 handRoot.localPosition = pose.RootPosition;
