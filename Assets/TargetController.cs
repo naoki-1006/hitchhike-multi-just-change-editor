@@ -11,6 +11,7 @@ public class TargetController : NetworkBehaviour
     [SerializeField] private GameObject targetPrefab; // ターゲットのプレハブ
     [SerializeField] private float spawnRadius = 0.7f;  // 出現半径
     [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
+    public int Reachingcount;
 
 
     // サーバーが管理するターゲットのインスタンス
@@ -35,6 +36,7 @@ public class TargetController : NetworkBehaviour
         SpawnTargetObject();
         // 最初の位置を決定する
         SpawnNewTargetPosition();
+        Reachingcount = 0;
     }
 
     /// <summary>

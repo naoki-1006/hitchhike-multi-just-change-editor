@@ -22,6 +22,7 @@ namespace HitchHikeMultiplayer
             {
                 // サーバーに「新しいターゲットの位置を生成して」とお願いする
                 RequestNewTargetServerRpc();
+                targetController.Reachingcount += 1;
             }
         }
 
