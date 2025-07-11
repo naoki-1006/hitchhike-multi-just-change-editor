@@ -11,20 +11,20 @@ namespace HitchHikeMultiplayer
         public override void OnNetworkSpawn()
     {
         // 自分のプレイヤーオブジェクトでなければ、このスクリプトは不要
-        if (!IsOwner)
-        {
-            enabled = false;
-        }
+        // if (!IsOwner)
+        // {
+        //     enabled = false;
+        // }
     }
 
         private void OnTriggerEnter(Collider other)
     {
-        if (!IsOwner) return;
+        if (!IsServer) return;
 
         // 触れたオブジェクトからTargetコンポーネントとNetworkObjectを取得
-        if (other.TryGetComponent<Target>(out Target target))
-        {
-            NetworkObject targetNetworkObject = target.GetComponent<NetworkObject>();
+            if (other.TryGetComponent<Target>(out Target target))
+            {
+                NetworkObject targetNetworkObject = target.NetworkObject;
 
                 // ★重要：ターゲットの所有者IDが自分自身のIDと一致するか確認
                 if (targetNetworkObject.OwnerClientId == OwnerClientId)
@@ -32,8 +32,8 @@ namespace HitchHikeMultiplayer
                     // 自分自身のターゲットに触れた場合のみ、サーバーに位置変更をリクエスト
                     RequestNewTargetServerRpc();
                     targetController.Reachingcount[(int)OwnerClientId] += 1;
+                }
             }
-        }
     }
 
         // クライアントからサーバーへ送るRPC
