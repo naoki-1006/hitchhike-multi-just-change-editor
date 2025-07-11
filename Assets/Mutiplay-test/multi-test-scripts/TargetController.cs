@@ -29,7 +29,7 @@ public class TargetController : NetworkBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
 
             // サーバー自身（ホスト）のぶんのターゲットを最初に生成する
-            SpawnTargetForClient(NetworkManager.Singleton.LocalClientId);
+            //SpawnTargetForClient(NetworkManager.Singleton.LocalClientId);
         }
     }
 
