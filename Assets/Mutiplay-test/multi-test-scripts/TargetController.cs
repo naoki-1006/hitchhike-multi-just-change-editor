@@ -8,7 +8,7 @@ public class TargetController : NetworkBehaviour
     public static TargetController Instance { get; private set; }
 
     [Header("Settings")]
-    [SerializeField] private List<GameObject> targetPrefabs = new List<GameObject>(); // ターゲットのプレハブ
+    [SerializeField] private List<Target> targetPrefabs = new(); // ターゲットのプレハブ
     [SerializeField] private float spawnRadius = 0.7f;  // 出現半径
     [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
     public List<int> Reachingcount = new List<int>();
@@ -67,9 +67,11 @@ public class TargetController : NetworkBehaviour
         GameObject targetPrefab = targetPrefabs[prefabIndex];
 
         // プレハブを生成し、所有権(Ownership)をクライアントに与えてスポーンさせる
-        GameObject targetGO = Instantiate(targetPrefab);
-        NetworkObject netObj = targetGO.GetComponent<NetworkObject>();
-        netObj.SpawnWithOwnership(clientId, true); // ★重要：所有権を与える
+        var targetGO = Instantiate(targetPrefab) as Target;
+        //NetworkObject netObj = targetGO.GetComponent<NetworkObject>();
+        //netObj.SpawnWithOwnership(clientId, true); // ★重要：所有権を与える
+        targetGO.PlayerId = clientId;
+        Debug.Log(clientId);
 
         // 管理リストに追加
         Target targetComponent = targetGO.GetComponent<Target>();

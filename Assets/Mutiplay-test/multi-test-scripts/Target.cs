@@ -10,6 +10,8 @@ public class Target : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
+    public ulong PlayerId;
+
     public override void OnNetworkSpawn()
     {
         // NetworkVariableの値が変更されたら、OnPositionChangedメソッドを呼び出すように登録
