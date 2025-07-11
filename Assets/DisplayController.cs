@@ -28,7 +28,8 @@ public class DisplayController : MonoBehaviour
         if (targetController != null)
         {
             // targetControllerの変数nの値を取得し、テキストを更新
-            reachingText.text = "Reaching:" + targetController.Reachingcount;
+            reachingText.text = "Sphere:" + targetController.Reachingcount[0] + "\n" + "Cube:" + targetController.Reachingcount[1];
+
         }
     }
 }
