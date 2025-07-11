@@ -11,7 +11,7 @@ public class TargetController : NetworkBehaviour
     [SerializeField] private List<Target> targetPrefabs = new(); // ターゲットのプレハブ
     [SerializeField] private float spawnRadius = 0.7f;  // 出現半径
     [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
-    public List<int> Reachingcount = new List<int>();
+    private Dictionary<ulong, int> reachingCount = new();
     private Dictionary<ulong, Target> clientTargets = new Dictionary<ulong, Target>();
 
 
@@ -78,8 +78,9 @@ public class TargetController : NetworkBehaviour
         // 管理リストに追加
         Target targetComponent = targetGO.GetComponent<Target>();
         clientTargets[clientId] = targetComponent;
+        
 
-        Reachingcount[(int)clientId] = 0;
+        
 
         // 最初の位置を決定
         SpawnNewTargetPosition(clientId);
@@ -105,5 +106,33 @@ public class TargetController : NetworkBehaviour
         // ターゲットの位置情報を更新
         target.NetworkPosition.Value = randomPos;
         Debug.Log(randomPos);
+    }
+
+    public void Incriment(ulong clientId)
+    {
+        if (!reachingCount.ContainsKey(clientId))
+        {
+            reachingCount[clientId] = 0;
+        }
+        reachingCount[clientId] += 1;
+        NotifyReachingCountClientRpc(clientId, reachingCount[clientId]);
+
+    }
+
+    public void Reset(ulong clientId)
+    {
+        reachingCount[clientId] = 0;
+        NotifyReachingCountClientRpc(clientId, reachingCount[clientId]);
+    }
+
+    [ClientRpc]
+    private void NotifyReachingCountClientRpc(ulong clientId, int Count)
+    {
+        reachingCount[clientId] = Count;
+    }
+
+    public bool TryGetReachingCount(ulong ClientId, out int Value)
+    {
+        return reachingCount.TryGetValue(ClientId, out Value);
     }
 }

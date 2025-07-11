@@ -5,8 +5,8 @@ namespace HitchHikeMultiplayer
 {
     public class PlayerHandInteractor : NetworkBehaviour
     {
-        [SerializeField]
-        private TargetController targetController;
+        //[SerializeField]
+        //private TargetController targetController;
 
         public override void OnNetworkSpawn()
     {
@@ -28,12 +28,13 @@ namespace HitchHikeMultiplayer
 
                 // ★重要：ターゲットの所有者IDが自分自身のIDと一致するか確認
                 Debug.Log($"{target.PlayerId}, {OwnerClientId}");
-            //if (targetNetworkObject.OwnerClientId == OwnerClientId)
-            if (target.PlayerId == OwnerClientId)
+                //if (targetNetworkObject.OwnerClientId == OwnerClientId)
+                if (target.PlayerId == OwnerClientId)
                 {
                     // 自分自身のターゲットに触れた場合のみ、サーバーに位置変更をリクエスト
                     RequestNewTargetServerRpc(target.PlayerId);
                     //targetController.Reachingcount[(int)OwnerClientId] += 1;
+                    TargetController.Instance?.Incriment(target.PlayerId);
                 }
         }
     }
@@ -46,7 +47,7 @@ namespace HitchHikeMultiplayer
         //ulong clientId = rpcParams.Receive.SenderClientId;
 
         // そのクライアントのターゲットを新しい位置に移動させるようコントローラーに命令
-        TargetController.Instance.SpawnNewTargetPosition(playerId);
+        TargetController.Instance?.SpawnNewTargetPosition(playerId);
     }
     }
 }
