@@ -809,11 +809,11 @@ PrefabInstance:
     - target: {fileID: 2805071298522629700, guid: 99560aa4c94b9394ea3697b0024cc054, type: 3}
       propertyPath: 'targetPrefabs.Array.data[0]'
       value: 
-      objectReference: {fileID: 4997610163235603742, guid: 9246139bd8a75cc4793fd54f835147b0, type: 3}
+      objectReference: {fileID: 2190415454264990980, guid: 9246139bd8a75cc4793fd54f835147b0, type: 3}
     - target: {fileID: 2805071298522629700, guid: 99560aa4c94b9394ea3697b0024cc054, type: 3}
       propertyPath: 'targetPrefabs.Array.data[1]'
       value: 
-      objectReference: {fileID: 7055893305764973562, guid: 33f9f8f448ee67f48b0359a02c88bde4, type: 3}
+      objectReference: {fileID: 58064765817044105, guid: 33f9f8f448ee67f48b0359a02c88bde4, type: 3}
     - target: {fileID: 4603747581330901298, guid: 99560aa4c94b9394ea3697b0024cc054, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 798671487
