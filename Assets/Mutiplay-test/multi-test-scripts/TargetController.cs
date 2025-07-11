@@ -36,7 +36,8 @@ public class TargetController : NetworkBehaviour
     private void HandleClientConnected(ulong clientId)
     {
         // サーバー（ホスト）は既に生成済みなので、それ以外のクライアントの場合のみ処理
-        if (clientId != NetworkManager.Singleton.LocalClientId)
+        //if (clientId != NetworkManager.Singleton.LocalClientId)
+        if (IsServer)
         {
             SpawnTargetForClient(clientId);
         }
@@ -47,7 +48,7 @@ public class TargetController : NetworkBehaviour
     /// </summary>
     private void HandleClientDisconnected(ulong clientId)
     {
-        if (clientTargets.TryGetValue(clientId, out Target targetToDestroy))
+        if (IsServer && clientTargets.TryGetValue(clientId, out Target targetToDestroy))
         {
             // ターゲットをネットワークから破棄し、管理リストから削除
             targetToDestroy.GetComponent<NetworkObject>().Despawn();
@@ -71,6 +72,7 @@ public class TargetController : NetworkBehaviour
         //NetworkObject netObj = targetGO.GetComponent<NetworkObject>();
         //netObj.SpawnWithOwnership(clientId, true); // ★重要：所有権を与える
         targetGO.PlayerId = clientId;
+        targetGO.NetworkObject.Spawn();
         Debug.Log(clientId);
 
         // 管理リストに追加

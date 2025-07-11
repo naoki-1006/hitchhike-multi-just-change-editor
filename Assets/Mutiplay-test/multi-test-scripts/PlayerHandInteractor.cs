@@ -32,7 +32,7 @@ namespace HitchHikeMultiplayer
             if (target.PlayerId == OwnerClientId)
                 {
                     // 自分自身のターゲットに触れた場合のみ、サーバーに位置変更をリクエスト
-                    RequestNewTargetServerRpc();
+                    RequestNewTargetServerRpc(target.PlayerId);
                     targetController.Reachingcount[(int)OwnerClientId] += 1;
                 }
         }
@@ -40,13 +40,13 @@ namespace HitchHikeMultiplayer
 
         // クライアントからサーバーへ送るRPC
         [ServerRpc]
-    private void RequestNewTargetServerRpc(ServerRpcParams rpcParams = default)
+    private void RequestNewTargetServerRpc(ulong playerId)
     {
         // RPCを呼び出したクライアントのIDを取得
-        ulong clientId = rpcParams.Receive.SenderClientId;
+        //ulong clientId = rpcParams.Receive.SenderClientId;
 
         // そのクライアントのターゲットを新しい位置に移動させるようコントローラーに命令
-        TargetController.Instance.SpawnNewTargetPosition(clientId);
+        TargetController.Instance.SpawnNewTargetPosition(playerId);
     }
     }
 }
