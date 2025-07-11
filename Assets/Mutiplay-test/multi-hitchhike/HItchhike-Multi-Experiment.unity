@@ -1293,7 +1293,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2805071298522629700, guid: 99560aa4c94b9394ea3697b0024cc054, type: 3}
       propertyPath: spawnRadius
-      value: 0.2
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 2805071298522629700, guid: 99560aa4c94b9394ea3697b0024cc054, type: 3}
       propertyPath: spawnPoints.Array.size
@@ -3205,7 +3205,7 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 192.168.1.43
+    Address: 192.168.1.53
     Port: 7777
     ServerListenAddress: 0.0.0.0
   DebugSimulator:
