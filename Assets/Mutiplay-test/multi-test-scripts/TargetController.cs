@@ -64,7 +64,7 @@ public class TargetController : NetworkBehaviour
 
         // クライアントIDに対応するプレハブを選択 (IDがプレハブ数を超える場合は巡回させる)
         int prefabIndex = (int)clientId % targetPrefabs.Count;
-        GameObject targetPrefab = targetPrefabs[prefabIndex];
+        var targetPrefab = targetPrefabs[prefabIndex];
 
         // プレハブを生成し、所有権(Ownership)をクライアントに与えてスポーンさせる
         var targetGO = Instantiate(targetPrefab) as Target;
