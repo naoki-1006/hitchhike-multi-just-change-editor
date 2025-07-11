@@ -33,13 +33,13 @@ namespace HitchHikeMultiplayer
                 {
                     // 自分自身のターゲットに触れた場合のみ、サーバーに位置変更をリクエスト
                     RequestNewTargetServerRpc(target.PlayerId);
-                    targetController.Reachingcount[(int)OwnerClientId] += 1;
+                    //targetController.Reachingcount[(int)OwnerClientId] += 1;
                 }
         }
     }
 
         // クライアントからサーバーへ送るRPC
-        [ServerRpc]
+        [ServerRpc(RequireOwnership = false)]
     private void RequestNewTargetServerRpc(ulong playerId)
     {
         // RPCを呼び出したクライアントのIDを取得
