@@ -6602,7 +6602,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentRequester: {fileID: 0}
-  _maxGazeTime: 0.2
+  _maxGazeTime: 0.01
 --- !u!1001 &1700243347
 PrefabInstance:
   m_ObjectHideFlags: 0
