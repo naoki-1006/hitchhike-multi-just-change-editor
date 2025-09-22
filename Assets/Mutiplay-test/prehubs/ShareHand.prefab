@@ -122,7 +122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  taskManager: {fileID: 0}
+  taskManager: {fileID: 3817025897226256595, guid: 7f96f3bbfd0386246afeed8e542a7ed4, type: 3}
 --- !u!1 &2180217309043995098
 GameObject:
   m_ObjectHideFlags: 0
@@ -171,7 +171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 964915375
+  GlobalObjectIdHash: 515806804
   InScenePlacedSourceGlobalObjectIdHash: 964915375
   DeferredDespawnTick: 0
   Ownership: 1

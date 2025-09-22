@@ -8225,6 +8225,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3817025897226256595, guid: 7f96f3bbfd0386246afeed8e542a7ed4, type: 3}
+      propertyPath: taskNumber
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6495275122156622359, guid: 7f96f3bbfd0386246afeed8e542a7ed4, type: 3}
       propertyPath: m_Name
       value: TaskManager
