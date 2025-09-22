@@ -71,5 +71,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  targetPrefab: {fileID: 4997610163235603742, guid: 9246139bd8a75cc4793fd54f835147b0, type: 3}
+  targetPrefabs: []
   spawnRadius: 0.7
+  taskManager: {fileID: 3817025897226256595, guid: 7f96f3bbfd0386246afeed8e542a7ed4, type: 3}
+  spawnPoints: []

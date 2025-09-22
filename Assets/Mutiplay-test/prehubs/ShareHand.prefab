@@ -122,7 +122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  targetController: {fileID: 0}
+  taskManager: {fileID: 0}
 --- !u!1 &2180217309043995098
 GameObject:
   m_ObjectHideFlags: 0
@@ -333,7 +333,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  targetController: {fileID: 0}
+  taskManager: {fileID: 3817025897226256595, guid: 7f96f3bbfd0386246afeed8e542a7ed4, type: 3}
 --- !u!1 &8316126441580242033
 GameObject:
   m_ObjectHideFlags: 0
