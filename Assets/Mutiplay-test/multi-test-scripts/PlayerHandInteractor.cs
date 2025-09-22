@@ -7,15 +7,16 @@ namespace HitchHikeMultiplayer
     {
         //[SerializeField]
         //private TargetController targetController;
+        [SerializeField] private TaskManager taskManager;
 
         public override void OnNetworkSpawn()
-    {
-        // 自分のプレイヤーオブジェクトでなければ、このスクリプトは不要
-        // if (!IsOwner)
-        // {
-        //     enabled = false;
-        // }
-    }
+        {
+            // 自分のプレイヤーオブジェクトでなければ、このスクリプトは不要
+            // if (!IsOwner)
+            // {
+            //     enabled = false;
+            // }
+        }
 
         private void OnTriggerEnter(Collider other)
     {
@@ -29,7 +30,7 @@ namespace HitchHikeMultiplayer
                 // ★重要：ターゲットの所有者IDが自分自身のIDと一致するか確認
                 Debug.Log($"{target.PlayerId}, {OwnerClientId}");
                 //if (targetNetworkObject.OwnerClientId == OwnerClientId)
-                if (target.PlayerId == OwnerClientId)
+                if (target.PlayerId == OwnerClientId || taskManager.taskNumber == 1)
                 {
                     // 自分自身のターゲットに触れた場合のみ、サーバーに位置変更をリクエスト
                     RequestNewTargetServerRpc(target.PlayerId);

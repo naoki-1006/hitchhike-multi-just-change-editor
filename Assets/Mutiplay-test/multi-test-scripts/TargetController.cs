@@ -10,6 +10,7 @@ public class TargetController : NetworkBehaviour
     [Header("Settings")]
     [SerializeField] private List<Target> targetPrefabs = new(); // ターゲットのプレハブ
     [SerializeField] private float spawnRadius = 0.7f;  // 出現半径
+    [SerializeField] private TaskManager taskManager;
     [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
     private Dictionary<ulong, int> reachingCount = new();
     private Dictionary<ulong, Target> clientTargets = new Dictionary<ulong, Target>();
@@ -65,6 +66,10 @@ public class TargetController : NetworkBehaviour
 
         // クライアントIDに対応するプレハブを選択 (IDがプレハブ数を超える場合は巡回させる)
         int prefabIndex = (int)clientId % targetPrefabs.Count;
+        if (taskManager.taskNumber == 1)
+        {
+            prefabIndex = 0;
+        }
         var targetPrefab = targetPrefabs[prefabIndex];
 
         // プレハブを生成し、所有権(Ownership)をクライアントに与えてスポーンさせる
