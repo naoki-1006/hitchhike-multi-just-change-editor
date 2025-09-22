@@ -29,9 +29,11 @@ namespace HitchHikeMultiplayer
 
                 // ★重要：ターゲットの所有者IDが自分自身のIDと一致するか確認
                 Debug.Log($"{target.PlayerId}, {OwnerClientId}");
+                Debug.Log($"taskNumber: {taskManager.taskNumber}");
                 //if (targetNetworkObject.OwnerClientId == OwnerClientId)
-                if (target.PlayerId == OwnerClientId || taskManager.taskNumber == 1)
+                if (target.PlayerId == OwnerClientId)
                 {
+                    Debug.Log("Touched own target");
                     // 自分自身のターゲットに触れた場合のみ、サーバーに位置変更をリクエスト
                     RequestNewTargetServerRpc(target.PlayerId);
                     //targetController.Reachingcount[(int)OwnerClientId] += 1;

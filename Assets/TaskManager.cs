@@ -2,5 +2,5 @@ using UnityEngine;
 
 public class TaskManager : MonoBehaviour
 {
-    [SerializeField] public int taskNumber = 0;
+    public int taskNumber = 1;
 }
